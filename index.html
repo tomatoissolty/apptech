@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>황실 자금 관리국 ✨</title>
+    
+    <link rel="apple-touch-icon" href="icon.jpeg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="황실자금">
+
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Noto+Serif+KR:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #050814;        
+            --card-bg: #0D1321;      
+            --gold-point: #C5A059;    
+            --text-main: #D1CDC4;     
+            --text-dim: #3A4454;      
+            --border-color: rgba(197, 160, 89, 0.12);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            font-family: 'Noto Serif KR', serif;
+            margin: 0; padding: 40px 15px;
+            display: flex; flex-direction: column; align-items: center;
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        header {
+            text-align: center; margin-bottom: 25px;
+            border-bottom: 1px solid var(--gold-point);
+            padding-bottom: 15px; width: 100%; max-width: 280px;
+        }
+        h1 { 
+            font-family: 'Cinzel Decorative', cursive; 
+            font-size: 18px; margin: 0; 
+            color: var(--gold-point); 
+            letter-spacing: 1.5px;
+        }
+        .date-display { 
+            font-size: 11px; color: var(--text-dim); 
+            margin-top: 6px;
+            font-weight: 400;
+        }
+
+        #check-container {
+            display: grid;
+            grid-template-columns: repeat(2, 140px);
+            gap: 10px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .app-group {
+            background: var(--card-bg); 
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-title {
+            font-size: 12px; font-weight: 400; color: var(--gold-point); 
+            margin-bottom: 8px; display: flex; align-items: center;
+            border-left: 1px solid var(--gold-point);
+            padding-left: 6px;
+        }
+
+        .mission-list { list-style: none; padding: 0; margin: 0; }
+        .mission-item {
+            display: flex; align-items: center;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.01);
+        }
+        .mission-item:last-child { border-bottom: none; }
+
+        input[type="checkbox"] {
+            appearance: none; width: 13px; height: 13px;
+            border: 1px solid var(--gold-point); border-radius: 2px;
+            margin-right: 6px; position: relative; cursor: pointer; 
+            background: transparent; flex-shrink: 0;
+        }
+        input[type="checkbox"]:checked {
+            background-color: var(--gold-point);
+        }
+        input[type="checkbox"]:checked::after {
+            content: '✔'; position: absolute; color: var(--bg-dark);
+            font-size: 9px; left: 2px; top: -1px; font-weight: bold;
+        }
+        input[type="checkbox"]:checked + span {
+            color: var(--text-dim); text-decoration: line-through;
+        }
+
+        .mission-text { 
+            font-size: 11px; 
+            color: var(--text-main); 
+            font-weight: 300; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            letter-spacing: -0.2px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Royal Treasury</h1>
+        <div id="current-date" class="date-display"></div>
+    </header>
+
+    <div id="check-container">
+        </div>
+
+    <script>
+        const missionData = [
+            { app: "카카오뱅크", missions: ["미션", "걷기", "OX", "서베이", "광고"] },
+            { app: "라플", missions: ["걸음수", "출석", "운동", "수면", "공유", "필사"] },
+            { app: "토스", missions: ["복권", "버튼", "만보기", "주식"] },
+            { app: "모니모", missions: ["기상", "걷기"] },
+            { app: "카카오페이", missions: ["출석", "퀴즈", "광고"] },
+            { app: "뱅크샐러드", missions: ["김뱅샐"] }
+        ];
+
+        function getTodayKey() {
+            const now = new Date();
+            return now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
+        }
+
+        function checkMidnightReset() {
+            const lastSavedDate = localStorage.getItem('apptech_final_v1');
+            const today = getTodayKey();
+            if (lastSavedDate !== today) {
+                localStorage.removeItem('apptech_status_final_v1');
+                localStorage.setItem('apptech_date_final_v1', today);
+            }
+        }
+
+        function saveStatus() {
+            const checks = document.querySelectorAll('input[type="checkbox"]');
+            const status = Array.from(checks).map(cb => cb.checked);
+            localStorage.setItem('apptech_status_final_v1', JSON.stringify(status));
+        }
+
+        function loadStatus() {
+            const savedStatus = JSON.parse(localStorage.getItem('apptech_status_final_v1') || '[]');
+            const checks = document.querySelectorAll('input[type="checkbox"]');
+            checks.forEach((cb, index) => {
+                if (savedStatus[index]) cb.checked = true;
+            });
+        }
+
+        function renderList() {
+            const container = document.getElementById('check-container');
+            const dateDisplay = document.getElementById('current-date');
+            const now = new Date();
+            dateDisplay.innerText = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+
+            missionData.forEach((item) => {
+                const group = document.createElement('div');
+                group.className = 'app-group';
+                let html = `<div class="app-title">${item.app}</div><ul class="mission-list">`;
+                item.missions.forEach((m) => {
+                    html += `
+                        <li class="mission-item">
+                            <label style="display:flex; align-items:center; width:100%;">
+                                <input type="checkbox" onchange="saveStatus()">
+                                <span class="mission-text">${m}</span>
+                            </label>
+                        </li>`;
+                });
+                html += `</ul>`;
+                group.innerHTML = html;
+                container.appendChild(group);
+            });
+        }
+
+        window.onload = function() {
+            checkMidnightReset();
+            renderList();
+            loadStatus();
+            setInterval(() => {
+                if (localStorage.getItem('apptech_date_final_v1') !== getTodayKey()) location.reload();
+            }, 30000);
+        };
+    </script>
+</body>
+</html>
